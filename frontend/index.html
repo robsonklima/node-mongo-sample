@@ -1,0 +1,166 @@
+<html>
+
+<head>
+  <title>Exemplo de Front End em jQuery e HTML</title>
+  <!-- Bootstrap -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+  <script>
+    $(document).ready(function () {
+      var url = "http://localhost:3000/customers/";
+
+      $.get(url, function (data, status) {
+        $.each(data, function (i, res) {
+          addTableRow(res._id, res.firstName, res.lastName);
+        })
+      });
+
+      $(document).on('click', 'button.remove', function () {
+        $.ajax({
+          url: url + $(this).closest('tr').find("._id").text(),
+          type: 'DELETE',
+          success: $(this).closest('tr').remove()
+        });
+      });
+
+      $(document).on('click', 'button.add', function () {
+        $.ajax({
+          url: url,
+          type: 'POST',
+          data: { firstName: $("#firstname").val(), lastName: $("#lastname").val() },
+          success: function(data) {
+            if (!data.errors) {
+              addTableRow(data._id, data.firstName, data.lastName);
+              $('#addModal').modal('toggle');
+              clearForm();
+            } else {
+              alert('Não foi possível cadatrar o cliente');
+            }
+          }
+        });
+      });
+
+      $(document).on('click', 'button.edt', function () {
+        $("#edtForm #_id").val($(this).closest('tr').find("._id").text());
+        $("#edtForm #firstname").val($(this).closest('tr').find(".firstname").text());
+        $("#edtForm #lastname").val($(this).closest('tr').find(".lastname").text());
+      });
+
+      $(document).on('click', 'button.update', function () {
+        $.ajax({
+          url: url + $("#_id").val(),
+          type: 'PUT',
+          data: { firstName: $("#edtForm #firstname").val(), lastName: $("#edtForm #lastname").val() },
+          success: function(data) {
+            if (!data.errors) {
+              $('#editModal').modal('toggle')
+              location.reload();
+            } else {
+              alert('Não foi possível atualizar o cliente');
+            }
+          }
+        });
+      });
+
+      var addTableRow = function (_id, firstName, lastName) {
+        $("#customers tbody").append(
+          "<tr>"
+          + "<td class='_id'>" + _id + "</td>"
+          + "<td class='firstname'>" + firstName + "</td>"
+          + "<td class='lastname'>" + lastName + "</td>"
+          + "<td><button type='button' class='btn btn-info btn-small edt' data-toggle='modal' data-target='#editModal'>Editar</button></td>"
+          + "<td><button type='submit' class='btn btn-danger btn-small remove'>Remover</button></td>"
+          + "</tr>"
+        )
+      }
+
+      var clearForm = function () {
+        $("#firstname").val("");
+        $("#lastname").val("");
+      }
+    });
+  </script>
+</head>
+
+<body>
+  <div class="container">
+    <h2>Clientes</h2>
+    <p>Exemplo básico de CRUD utilizando NodeJS, MongoDB e jQuery</p>
+    <button type="button" class="btn btn-success btn-small" data-toggle="modal" data-target="#addModal">Novo Cliente</button>
+
+    <div class="table-responsive">
+      <table class="table" id="customers">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Nome</th>
+            <th>Sobrenome</th>
+            <th>Editar</th>
+            <th>Remover</th>
+          </tr>
+        </thead>
+        <tbody>
+
+        </tbody>
+      </table>
+    </div>
+
+    <div id="addModal" class="modal fade" role="dialog">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 class="modal-title">Novo Cliente</h4>
+          </div>
+          <div class="modal-body">
+            <form id="addForm">
+              <div class="form-group">
+                <label for="name">Nome</label>
+                <input type="text" class="form-control" id="firstname" placeholder="Digite o nome">
+              </div>
+              <div class="form-group">
+                <label for="name">Sobrenome</label>
+                <input type="text" class="form-control" id="lastname" placeholder="Digite o sobrenome">
+              </div>
+              <button type="button" class="btn btn-primary add">Adicionar</button>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="editModal" class="modal fade" role="dialog">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 class="modal-title">Editar Cliente</h4>
+          </div>
+          <div class="modal-body">
+            <form id="edtForm">
+              <input type="hidden" id="_id">
+              <div class="form-group">
+                <label for="name">Nome</label>
+                <input type="text" class="form-control" id="firstname" placeholder="Digite o nome">
+              </div>
+              <div class="form-group">
+                <label for="name">Sobrenome</label>
+                <input type="text" class="form-control" id="lastname" placeholder="Digite o sobrenome">
+              </div>
+              <button type="button" class="btn btn-primary update">Atualizar</button>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
